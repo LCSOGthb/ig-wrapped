@@ -5,18 +5,29 @@ import MutedText from "./Wrapped/MutedText";
 function Footer() {
   return (
     <div>
-      <a
-        href="https://vantezzen.io"
-        target="_blank"
-        rel="noreferrer"
-        className="text-zinc-800 font-medium mt-12"
-      >
-        Made by <span className="underline">vantezzen</span>
+      <div className="mt-12">
+        <a
+          href="https://vantezzen.io"
+          target="_blank"
+          rel="noreferrer"
+          className="text-zinc-800 font-medium"
+        >
+          Made by <span className="underline">vantezzen</span>
+        </a>
+        {" · "}
+        <a
+          href="https://github.com/LCSOGthb"
+          target="_blank"
+          rel="noreferrer"
+          className="text-zinc-800 font-medium"
+        >
+          continued/maintained by <span className="underline">LCS</span>
+        </a>
         <br />
         <span className="text-sm">
           Silly little projects for when you need a break from reality
         </span>
-      </a>
+      </div>
       <div className="flex flex-col sm:flex-row gap-6 justify-center mb-3 text-xs mt-6">
         <Link href="/legal/terms" className="text-zinc-800 font-medium">
           Terms of Service
