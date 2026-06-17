@@ -62,12 +62,12 @@ const items = [
         Wrapped for Instagram is safe and privacy-centered. If you know how to
         read code, you can look at Wrapped for Instagram's full source code at{" "}
         <a
-          href="https://github.com/vantezzen/ig-wrapped"
+          href="https://github.com/LCSOGthb/ig-wrapped"
           target="_blank"
           rel="noopener noreferrer"
           className="underline font-bold"
         >
-          https://github.com/vantezzen/ig-wrapped
+          https://github.com/LCSOGthb/ig-wrapped
         </a>
         . Your Instagram data is only used in your browser and never uploaded to
         any server. We will not store or process your data on our server in any
