@@ -25,6 +25,11 @@ const WrappedPlayerComponent = dynamic(
   () => import("@/components/Wrapped/WrappedPlayerComponent"),
   {
     ssr: false,
+    loading: () => (
+      <WrappedContainer>
+        <Loader2 size={32} className="animate-spin" />
+      </WrappedContainer>
+    ),
   }
 );
 
