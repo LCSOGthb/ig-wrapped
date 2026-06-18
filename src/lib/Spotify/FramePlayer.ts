@@ -10,16 +10,36 @@ export default class SpotifyFramePlayer extends EventEmitter {
   public loadLibrary() {
     return new Promise<void>((resolve) => {
       const script = document.createElement("script");
-      script.src = "https://open.spotify.com/embed-podcast/iframe-api/v1";
+      script.src = "https://open.spotify.com/embed/iframe-api/v1";
       script.async = true;
+
+      let timeoutId: NodeJS.Timeout | null = null;
+      let resolved = false;
+
+      const cleanup = () => {
+        if (timeoutId) clearTimeout(timeoutId);
+        resolved = true;
+      };
+
+      script.onerror = () => {
+        console.warn("Spotify IFrame API script failed to load - continuing without audio");
+        cleanup();
+        resolve();
+      };
+
       document.body.appendChild(script);
 
-      const timeout = setTimeout(() => {
-        resolve();
-        console.error("Spotify IFrame API timed out");
-      }, 20000);
+      timeoutId = setTimeout(() => {
+        if (!resolved) {
+          cleanup();
+          console.warn("Spotify IFrame API timed out - continuing without audio");
+          resolve();
+        }
+      }, 30000);
 
       window.onSpotifyIframeApiReady = (IFrameAPI: SpotifyIframeApi) => {
+        if (resolved) return;
+
         const element = document.getElementById("spotify");
         const options = {
           uri: "spotify:track:7oDd86yk8itslrA9HRP2ki",
@@ -37,7 +57,7 @@ export default class SpotifyFramePlayer extends EventEmitter {
             this.embedController!.removeListener("ready", enablePlayback);
             this.emit("ready");
 
-            clearTimeout(timeout);
+            cleanup();
             resolve();
           };
 
@@ -63,19 +83,19 @@ export default class SpotifyFramePlayer extends EventEmitter {
   public playSong(uri: string) {
     return new Promise<void>(async (resolve) => {
       if (!this.canPlaySongs) {
-        console.error("User cannot play songs");
         return resolve();
       }
       if (!this.embedController) {
-        console.error("SpotifyFramePlayer not initialized");
         return resolve();
       }
 
-      const playTimeout = setTimeout(() => {
-        console.error("Spotify IFrame API timed out");
+      let playTimeoutId: NodeJS.Timeout | null = null;
+      const playTimeout = () => {
         this.canPlaySongs = false;
+        if (playTimeoutId) clearTimeout(playTimeoutId);
         resolve();
-      }, 15000);
+      };
+      playTimeoutId = setTimeout(playTimeout, 15000);
 
       const container = document.getElementById("spotify-wrapper");
       this.previousIFrame = this.currentIFrame;
@@ -92,7 +112,6 @@ export default class SpotifyFramePlayer extends EventEmitter {
       const oembed = await fetch(`https://open.spotify.com/oembed?url=${uri}`)
         .then((response) => response.json())
         .catch(() => {
-          console.error("Failed to fetch Spotify oembed");
           return {
             html: "",
           };
@@ -119,7 +138,7 @@ export default class SpotifyFramePlayer extends EventEmitter {
       await this.waitForSpotify();
 
       this.currentIFrame!.style.opacity = "1";
-      clearTimeout(playTimeout);
+      if (playTimeoutId) clearTimeout(playTimeoutId);
       resolve();
     });
   }
@@ -189,12 +208,7 @@ export default class SpotifyFramePlayer extends EventEmitter {
   }
 
   public async pause() {
-    if (!this.canPlaySongs) {
-      console.error("User cannot play songs");
-      return;
-    }
-    if (!this.embedController) {
-      console.error("SpotifyFramePlayer not initialized");
+    if (!this.canPlaySongs || !this.embedController) {
       return;
     }
 

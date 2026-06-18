@@ -26,7 +26,7 @@ function FileUpload({ onFileSelect }: { onFileSelect: (file: File) => void }) {
         <br />
         Wrapped for Instagram is{" "}
         <a
-          href="https://github.com/vantezzen/ig-wrapped"
+          href="https://github.com/LCSOGthb/ig-wrapped"
           className="underline"
           target="_blank"
           rel="noopener noreferrer"
