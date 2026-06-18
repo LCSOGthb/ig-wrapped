@@ -1,4 +1,4 @@
-# Wrapped for Instagram
+# Wrapped for Instagram (Originally made by [vantezzen](https://github.com/vantezzen) • maintained by [LCSOGthb](https://github.com/LCSOGthb))
 
 Wrapped for Instagram uses your Instagram data export to give you personalized stats about your time on Instagram.
 
