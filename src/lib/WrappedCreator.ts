@@ -163,20 +163,22 @@ export default class WrappedCreator {
     if (profileChangesFile) {
       debug("getAccountInformation: profileChangesFile");
       const profileChanges = await this.readZipFile(profileChangesFile);
-      output.changes = this.removeOutdatedEntries(
-        profileChanges.profile_profile_change
-          .filter(
-            (c: any) =>
-              c.string_map_data?.["Change date"]?.timestamp ||
-              c.string_map_data?.["Change Date"]?.timestamp
-          )
-          .map((c: any) => ({
-            changed: c.string_map_data?.Changed?.value ?? "Unknown Change",
-            timestamp:
-              c.string_map_data["Change date"]?.timestamp ||
-              c.string_map_data["Change Date"]?.timestamp,
-          }))
-      );
+      if (profileChanges.profile_profile_change) {
+        output.changes = this.removeOutdatedEntries(
+          profileChanges.profile_profile_change
+            .filter(
+              (c: any) =>
+                c.string_map_data?.["Change date"]?.timestamp ||
+                c.string_map_data?.["Change Date"]?.timestamp
+            )
+            .map((c: any) => ({
+              changed: c.string_map_data?.Changed?.value ?? "Unknown Change",
+              timestamp:
+                c.string_map_data["Change date"]?.timestamp ||
+                c.string_map_data["Change Date"]?.timestamp,
+            }))
+        );
+      }
     }
 
     const profilePhotoChangesFile =
@@ -187,14 +189,16 @@ export default class WrappedCreator {
         profilePhotoChangesFile
       );
 
-      output.changes = output.changes.concat(
-        this.removeOutdatedEntries(
-          profilePhotoChanges.ig_profile_picture.map((c: any) => ({
-            changed: "Profile Photo",
-            timestamp: c.creation_timestamp,
-          }))
-        )
-      );
+      if (profilePhotoChanges.ig_profile_picture) {
+        output.changes = output.changes.concat(
+          this.removeOutdatedEntries(
+            profilePhotoChanges.ig_profile_picture.map((c: any) => ({
+              changed: "Profile Photo",
+              timestamp: c.creation_timestamp,
+            }))
+          )
+        );
+      }
     }
 
     const privacyStatusChangesFile =
@@ -295,9 +299,11 @@ export default class WrappedCreator {
     if (likedCommentsFile) {
       debug("getActivity: likedCommentsFile");
       const likedComments = await this.readZipFile(likedCommentsFile);
-      output.likedComments = this.removeOutdatedEntries(
-        likedComments.likes_comment_likes.map((c: any) => c.string_list_data[0])
-      );
+      if (likedComments.likes_comment_likes) {
+        output.likedComments = this.removeOutdatedEntries(
+          likedComments.likes_comment_likes.map((c: any) => c.string_list_data[0])
+        );
+      }
     }
 
     const likedPostsFile =
@@ -305,9 +311,11 @@ export default class WrappedCreator {
     if (likedPostsFile) {
       debug("getActivity: likedPostsFile");
       const likedPosts = await this.readZipFile(likedPostsFile);
-      output.likedPosts = this.removeOutdatedEntries(
-        likedPosts.likes_media_likes.map((c: any) => c.string_list_data[0])
-      );
+      if (likedPosts.likes_media_likes) {
+        output.likedPosts = this.removeOutdatedEntries(
+          likedPosts.likes_media_likes.map((c: any) => c.string_list_data[0])
+        );
+      }
     }
 
     output.recentSearches = {};
@@ -319,13 +327,15 @@ export default class WrappedCreator {
       const recentAccountSearches = await this.readZipFile(
         recentAccountSearchesFile
       );
-      output.recentSearches.accounts = this.removeOutdatedEntries(
-        recentAccountSearches.searches_user.map((c: any) => ({
-          href: "",
-          value: c.title,
-          timestamp: c.string_list_data[0].timestamp,
-        }))
-      );
+      if (recentAccountSearches.searches_user) {
+        output.recentSearches.accounts = this.removeOutdatedEntries(
+          recentAccountSearches.searches_user.map((c: any) => ({
+            href: "",
+            value: c.title,
+            timestamp: c.string_list_data[0].timestamp,
+          }))
+        );
+      }
     }
 
     const recentWordOrPhraseSearchesFile =
@@ -337,13 +347,15 @@ export default class WrappedCreator {
       const recentWordOrPhraseSearches = await this.readZipFile(
         recentWordOrPhraseSearchesFile
       );
-      output.recentSearches.wordOrPhrase = this.removeOutdatedEntries(
-        recentWordOrPhraseSearches.searches_keyword.map((c: any) => ({
-          href: "",
-          value: c.string_map_data.Search.value,
-          timestamp: c.string_map_data.Time.timestamp,
-        }))
-      );
+      if (recentWordOrPhraseSearches.searches_keyword) {
+        output.recentSearches.wordOrPhrase = this.removeOutdatedEntries(
+          recentWordOrPhraseSearches.searches_keyword.map((c: any) => ({
+            href: "",
+            value: c.string_map_data.Search.value,
+            timestamp: c.string_map_data.Time.timestamp,
+          }))
+        );
+      }
     }
 
     const participatedPollsFile =
@@ -351,13 +363,15 @@ export default class WrappedCreator {
     if (participatedPollsFile) {
       debug("getActivity: participatedPollsFile");
       const participatedPolls = await this.readZipFile(participatedPollsFile);
-      output.participatedPolls = this.removeOutdatedEntries(
-        participatedPolls.story_activities_polls.map((c: any) => ({
-          href: "",
-          value: c.title,
-          timestamp: c.string_list_data[0].timestamp,
-        }))
-      );
+      if (participatedPolls.story_activities_polls) {
+        output.participatedPolls = this.removeOutdatedEntries(
+          participatedPolls.story_activities_polls.map((c: any) => ({
+            href: "",
+            value: c.title,
+            timestamp: c.string_list_data[0].timestamp,
+          }))
+        );
+      }
     }
 
     const storyLikesFile =
@@ -365,26 +379,30 @@ export default class WrappedCreator {
     if (storyLikesFile) {
       debug("getActivity: storyLikesFile");
       const storyLikes = await this.readZipFile(storyLikesFile);
-      output.storyLikes = this.removeOutdatedEntries(
-        storyLikes.story_activities_story_likes.map((c: any) => ({
-          href: "",
-          value: c.title,
-          timestamp: c.string_list_data[0].timestamp,
-        }))
-      );
+      if (storyLikes.story_activities_story_likes) {
+        output.storyLikes = this.removeOutdatedEntries(
+          storyLikes.story_activities_story_likes.map((c: any) => ({
+            href: "",
+            value: c.title,
+            timestamp: c.string_list_data[0].timestamp,
+          }))
+        );
+      }
     }
 
     const storiesFile = zip.files["your_instagram_activity/media/stories.json"];
     if (storiesFile) {
       debug("getActivity: storiesFile");
       const stories = await this.readZipFile(storiesFile);
-      output.stories = this.removeOutdatedEntries(
-        stories.ig_stories.map((c: any) => ({
-          href: "",
-          value: "",
-          timestamp: c.creation_timestamp,
-        }))
-      );
+      if (stories.ig_stories) {
+        output.stories = this.removeOutdatedEntries(
+          stories.ig_stories.map((c: any) => ({
+            href: "",
+            value: "",
+            timestamp: c.creation_timestamp,
+          }))
+        );
+      }
     }
 
     const profilePhotosFile =
@@ -392,13 +410,15 @@ export default class WrappedCreator {
     if (profilePhotosFile) {
       debug("getActivity: profilePhotosFile");
       const profilePhotos = await this.readZipFile(profilePhotosFile);
-      output.profilePhotos = this.removeOutdatedEntries(
-        profilePhotos.ig_profile_picture.map((c: any) => ({
-          href: "",
-          value: "",
-          timestamp: c.creation_timestamp,
-        }))
-      );
+      if (profilePhotos.ig_profile_picture) {
+        output.profilePhotos = this.removeOutdatedEntries(
+          profilePhotos.ig_profile_picture.map((c: any) => ({
+            href: "",
+            value: "",
+            timestamp: c.creation_timestamp,
+          }))
+        );
+      }
     }
 
     return output;
