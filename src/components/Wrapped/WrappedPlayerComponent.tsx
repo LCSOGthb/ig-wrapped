@@ -32,7 +32,8 @@ const TransitionWrapper = ({
 
 function WrappedPlayerComponent({
   spotify,
-  ...props
+  statistics,
+  isDemo,
 }: {
   spotify: SpotifyFramePlayer | null;
 } & WrappedSlideProps) {
@@ -41,16 +42,16 @@ function WrappedPlayerComponent({
   const forceUpdate = () => forceUpdateState((s) => s + 1);
   useEffect(() => {
     player.on("update", forceUpdate);
-    player.play(props.statistics);
+    player.play(statistics);
 
     return () => {
       player.off("update", forceUpdate);
     };
-  }, []);
+  }, [player, statistics]);
 
   useEffect(() => {
     player.spotifyPlayer = spotify;
-  }, [spotify]);
+  }, [player, spotify]);
 
   const Component = player.currentSlide?.component || LoadingPlayerComponent;
 
@@ -63,7 +64,7 @@ function WrappedPlayerComponent({
           classNames="fade"
           unmountOnExit
         >
-          <Component {...props} />
+          <Component statistics={statistics} isDemo={isDemo} />
         </TransitionWrapper>
       </TransitionGroup>
     </>
