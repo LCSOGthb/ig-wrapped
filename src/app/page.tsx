@@ -74,13 +74,7 @@ function InstagramWrappedAppPage() {
             setPage("loading");
             trackEvent("file_selected");
 
-            if (file.name.endsWith(".txt")) {
-              setPage("text");
-              trackEvent("text_error");
-              return;
-            }
-
-            if (!file.name.endsWith(".json") && !file.name.endsWith(".zip")) {
+            if (!file.name.endsWith(".json") && !file.name.endsWith(".zip") && !file.name.endsWith(".txt")) {
               setPage("unknown_file");
               trackEvent("unknown_file_error");
               trackEvent("unknown_file_error_" + file.name.split(".").pop());

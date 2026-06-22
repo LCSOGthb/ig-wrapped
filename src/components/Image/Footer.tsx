@@ -19,7 +19,7 @@ function Footer() {
       <p style={{ color: "#919191", fontSize: "25px" }}>
         Get your own Wrapped at
       </p>
-      <p style={{ fontSize: "30px" }}>ig.vantezzen.io</p>
+      <p style={{ fontSize: "30px" }}>ig-wrap.vercel.app</p>
     </div>
   );
 }

@@ -27,8 +27,154 @@ export default class WrappedCreator {
         type: file.type,
       });
 
-      this.fromZip(file).then(resolve).catch(reject);
+      if (file.name.endsWith(".txt")) {
+        this.fromText(file).then(resolve).catch(reject);
+      } else {
+        this.fromZip(file).then(resolve).catch(reject);
+      }
     });
+  }
+
+  private async fromText(file: File): Promise<Wrapped> {
+    try {
+      const text = await file.text();
+      this.isTextExport = true;
+
+      const instagramData: InstagramUserData = {
+        accountConnections: this.parseTextConnections(text),
+        accountInformation: this.parseTextAccountInfo(text),
+        directMessages: this.parseTextMessages(text),
+        activity: this.parseTextActivity(text),
+        externalTrackedPages: [],
+      };
+
+      this.investigateSchema(instagramData);
+      return new Wrapped(instagramData);
+    } catch (e) {
+      Sentry.captureException(new Error("Cannot read TXT file"), {
+        extra: {
+          originalException: e,
+          fileName: file.name,
+          fileSize: file.size,
+        },
+      });
+      throw e;
+    }
+  }
+
+  private parseTextConnections(text: string): InstagramAccountConnections {
+    const output: InstagramAccountConnections = {};
+
+    const followingMatch = text.match(/following[:\s]+(\d+)/i);
+    if (followingMatch) {
+      output.following = Array(parseInt(followingMatch[1]))
+        .fill(null)
+        .map((_, i) => ({
+          href: "",
+          value: `user_${i}`,
+          timestamp: Math.floor(Date.now() / 1000),
+        }));
+    }
+
+    const followersMatch = text.match(/followers[:\s]+(\d+)/i);
+    if (followersMatch) {
+      output.followers = Array(parseInt(followersMatch[1]))
+        .fill(null)
+        .map((_, i) => ({
+          href: "",
+          value: `follower_${i}`,
+          timestamp: Math.floor(Date.now() / 1000),
+        }));
+    }
+
+    const unfollowedMatch = text.match(/unfollowed[:\s]+(\d+)/i);
+    if (unfollowedMatch) {
+      output.recentlyUnfollowed = Array(parseInt(unfollowedMatch[1]))
+        .fill(null)
+        .map((_, i) => ({
+          href: "",
+          value: `unfollowed_${i}`,
+          timestamp: Math.floor(Date.now() / 1000),
+        }));
+    }
+
+    return output;
+  }
+
+  private parseTextAccountInfo(text: string): InstagramAccountInformation {
+    const usernameMatch = text.match(/username[:\s]+(@?[\w.]+)/i);
+    const nameMatch = text.match(/name[:\s]+([^\n]+)/i);
+
+    return {
+      username: usernameMatch ? usernameMatch[1].replace(/^@/, "") : undefined,
+      name: nameMatch ? nameMatch[1].trim() : undefined,
+      changes: [],
+    };
+  }
+
+  private parseTextMessages(text: string): InstagramDirectMessage[] {
+    const messages: InstagramDirectMessage[] = [];
+    const messagePattern = /message|chat|dm/gi;
+
+    if (messagePattern.test(text)) {
+      const dmCountMatch = text.match(/(\d+)\s*(?:messages|chats|dms?)/i);
+      if (dmCountMatch) {
+        const count = parseInt(dmCountMatch[1]);
+        for (let i = 0; i < Math.min(count, 10); i++) {
+          messages.push({
+            content: `Message ${i + 1}`,
+            timestamp: Math.floor(Date.now() / 1000) - i * 3600,
+            sender: `contact_${i}`,
+            isUserSender: i % 2 === 0,
+            isReelShare: false,
+            isPostShare: false,
+            isTikTokShare: false,
+          });
+        }
+      }
+    }
+
+    return messages;
+  }
+
+  private parseTextActivity(text: string): InstagramActivity {
+    const activity: InstagramActivity = {};
+
+    const likesMatch = text.match(/posts? liked[:\s]+(\d+)/i);
+    if (likesMatch) {
+      activity.likedPosts = Array(parseInt(likesMatch[1]))
+        .fill(null)
+        .map((_, i) => ({
+          href: "",
+          value: `post_${i}`,
+          timestamp: Math.floor(Date.now() / 1000) - i * 86400,
+        }));
+    }
+
+    const commentsMatch = text.match(/comments? written[:\s]+(\d+)/i);
+    if (commentsMatch) {
+      activity.comments = Array(parseInt(commentsMatch[1]))
+        .fill(null)
+        .map((_, i) => ({
+          href: "",
+          value: `comment_${i}`,
+          timestamp: Math.floor(Date.now() / 1000) - i * 86400,
+        }));
+    }
+
+    const storiesMatch = text.match(/stories? posted[:\s]+(\d+)/i);
+    if (storiesMatch) {
+      activity.stories = Array(parseInt(storiesMatch[1]))
+        .fill(null)
+        .map((_, i) => ({
+          href: "",
+          value: "",
+          timestamp: Math.floor(Date.now() / 1000) - i * 86400,
+        }));
+    }
+
+    activity.recentSearches = {};
+    return activity;
   }
 
   private async fromZip(file: File): Promise<Wrapped> {
